@@ -1,0 +1,12 @@
+{
+  "name": "rpi-voice-control",
+  "version": "0.0.1",
+  "homepage": "https://github.com/johanpoirier/rpi-voice-control",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/johanpoirier/rpi-voice-control.git"
+  },
+  "scripts": {
+    "start": "node voice.js"
+  }
+}

@@ -1,4 +1,4 @@
-var Speakable = require('./Speakable');
+var Speakable = require('./speakable.js');
 var apiKey = process.env.GKEY;
 
 var speakable = new Speakable({ key: apiKey }, { lang: 'fr-FR', threshold: 2 });

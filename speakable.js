@@ -16,17 +16,19 @@ var Speakable = function Speakable(credentials, options) {
     this.cmd = 'sox';
     this.cmdArgs = [
         '-q',
-        '-b','16',
-        '-d','-t','flac','-',
-        'rate','16000','channels','1',
-        'silence','1','0.1',(options.threshold || '0.1')+'%','1','1.0',(options.threshold || '0.1')+'%'
+        '-b', '16',
+        '-d', '-t', 'flac', '-',
+        'rate', '16000', 'channels', '1',
+        'silence', '1', '0.1', (options.threshold || '0.1') + '%', '1', '1.0', (options.threshold || '0.1') + '%'
     ];
+
+    //console.log("[command] sox " + this.cmdArgs.join(" "));
 };
 
 util.inherits(Speakable, EventEmitter);
 module.exports = Speakable;
 
-Speakable.prototype.postVoiceData = function() {
+Speakable.prototype.postVoiceData = function () {
     var self = this;
 
     var options = {
@@ -38,9 +40,9 @@ Speakable.prototype.postVoiceData = function() {
         }
     };
 
-    var req = http.request(options, function(res) {
+    var req = http.request(options, function (res) {
         self.recBuffer = [];
-        if(res.statusCode !== 200) {
+        if (res.statusCode !== 200) {
             return self.emit(
                 'error',
                 'Non-200 answer from Google Speech API (' + res.statusCode + ')'
@@ -50,39 +52,39 @@ Speakable.prototype.postVoiceData = function() {
         res.on('data', function (chunk) {
             self.apiResult = JSON.parse(chunk);
         });
-        res.on('end', function() {
+        res.on('end', function () {
             self.parseResult();
         });
     });
 
-    req.on('error', function(e) {
+    req.on('error', function (e) {
         self.emit('error', e);
     });
 
     // write data to request body
     console.log('Posting voice data...');
-    for(var i in self.recBuffer) {
-        if(self.recBuffer.hasOwnProperty(i)) {
-            req.write(new Buffer(self.recBuffer[i],'binary'));
+    for (var i in self.recBuffer) {
+        if (self.recBuffer.hasOwnProperty(i)) {
+            req.write(new Buffer(self.recBuffer[i], 'binary'));
         }
     }
     req.end();
 };
 
-Speakable.prototype.recordVoice = function() {
+Speakable.prototype.recordVoice = function () {
     var self = this;
 
     var rec = spawn(self.cmd, self.cmdArgs, 'pipe');
 
     // Process stdout
 
-    rec.stdout.on('readable', function() {
+    rec.stdout.on('readable', function () {
         self.emit('speechReady');
     });
 
     rec.stdout.setEncoding('binary');
-    rec.stdout.on('data', function(data) {
-        if(! self.recRunning) {
+    rec.stdout.on('data', function (data) {
+        if (!self.recRunning) {
             self.emit('speechStart');
             self.recRunning = true;
         }
@@ -92,28 +94,30 @@ Speakable.prototype.recordVoice = function() {
     // Process stdin
 
     rec.stderr.setEncoding('utf8');
-    rec.stderr.on('data', function(data) {
+    rec.stderr.on('data', function (data) {
         console.log(data)
     });
 
-    rec.on('close', function(code) {
+    rec.on('close', function (code) {
         self.recRunning = false;
-        if(code) {
-            self.emit('error', 'sox exited with code ' + code);
-        }
         self.emit('speechStop');
-        self.postVoiceData();
+        if (code) {
+            self.emit('error', 'sox exited with code ' + code);
+        } else {
+            self.postVoiceData();
+        }
     });
 };
 
-Speakable.prototype.resetVoice = function() {
+Speakable.prototype.resetVoice = function () {
     var self = this;
     self.recBuffer = [];
 }
 
-Speakable.prototype.parseResult = function() {
+Speakable.prototype.parseResult = function () {
     var recognizedWords = [], apiResult = this.apiResult.result;
-    if(apiResult && apiResult.length > 0 && apiResult[0].alternative && apiResult[0].alternative[0]) {
+    console.log("Google results:", apiResult);
+    if (apiResult && apiResult.length > 0 && apiResult[0].alternative && apiResult[0].alternative[0]) {
         recognizedWords = apiResult[0].alternative[0].transcript.split(' ');
         this.emit('speechResult', recognizedWords);
     } else {

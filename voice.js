@@ -1,6 +1,14 @@
 var Speakable = require('./Speakable');
+var apiKey = process.env.GKEY;
 
-var speakable = new Speakable({ key: 'AIzaSyA-idqbyUoaEA9pVdXAAGuYOZgZHfxp-NU' }, { lang: 'fr-FR' });
+var speakable = new Speakable({ key: apiKey }, { lang: 'fr-FR', threshold: 2 });
+
+speakable.on('speechStart', function() {
+    console.log('speachStart');
+});
+speakable.on('speechStop', function() {
+    console.log('speachStop');
+});
 
 speakable.on('error', function(err) {
     console.log('onError:');

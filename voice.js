@@ -1,7 +1,7 @@
 var Speakable = require('./speakable.js');
 var apiKey = process.env.GKEY;
 
-var speakable = new Speakable({ key: apiKey }, { lang: 'fr-FR', threshold: 2 });
+var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-10d' });
 
 speakable.on('speechStart', function() {
     console.log('speachStart');

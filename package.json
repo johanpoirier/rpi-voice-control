@@ -1,10 +1,14 @@
 {
   "name": "rpi-voice-control",
+  "description": "Raspberry voice control",
   "version": "0.0.1",
   "homepage": "https://github.com/johanpoirier/rpi-voice-control",
   "repository": {
     "type": "git",
     "url": "git://github.com/johanpoirier/rpi-voice-control.git"
+  },
+  "dependencies": {
+    "node-wit": "1.0.0"
   },
   "scripts": {
     "start": "node voice.js"

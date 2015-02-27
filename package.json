@@ -8,7 +8,8 @@
     "url": "git://github.com/johanpoirier/rpi-voice-control.git"
   },
   "dependencies": {
-    "node-wit": "1.0.0"
+    "node-wit": "1.1.0",
+    "stream-buffers": "^2.1.0"
   },
   "scripts": {
     "start": "node voice.js"

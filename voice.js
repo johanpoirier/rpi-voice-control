@@ -1,7 +1,14 @@
+var arguments = process.argv.slice(2);
+
 var Speakable = require('./speakable.js');
 var apiKey = process.env.GKEY;
 
-var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-10d' });
+if (arguments[0] === 'w') {
+    Speakable = require('./speechable.js');
+    apiKey = process.env.WITKEY;
+}
+
+var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-20d' });
 
 speakable.on('speechStart', function() {
     console.log('speachStart');
@@ -22,4 +29,5 @@ speakable.on('speechResult', function(recognizedWords) {
     speakable.recordVoice();
 });
 
+console.log("Listening...");
 speakable.recordVoice();

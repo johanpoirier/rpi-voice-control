@@ -22,7 +22,7 @@ var Speakable = function Speakable(credentials, options) {
         'silence', '1', '0.1', (options.threshold || '0.1'), '1', '1.0', (options.threshold || '0.1')
     ];
 
-    //console.log("[command] sox " + this.cmdArgs.join(" "));
+    console.log("[command] sox " + this.cmdArgs.join(" "));
 };
 
 util.inherits(Speakable, EventEmitter);

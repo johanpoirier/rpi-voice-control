@@ -1,19 +1,14 @@
 var EventEmitter = require('events').EventEmitter,
-
     util = require('util'),
     spawn = require('child_process').spawn,
-    http = require('http'),
     fs = require('fs'),
-    wit = require('node-wit'),
-    streamBuffers = require("stream-buffers");
+    wit = require('node-wit');
 
 var Speakable = function Speakable(credentials, options) {
     EventEmitter.call(this);
 
     options = options || {}
 
-    //this.recBuffer = [];
-    this.recBuffer = [];
     this.recRunning = false;
     this.apiResult = {};
     this.apiLang = options.lang || "en-US";
@@ -22,7 +17,7 @@ var Speakable = function Speakable(credentials, options) {
     this.cmdArgs = [
         '-q',
         '-b', '16',
-        '-d', '-t', 'wav', '-',
+        '-d', '-t', 'wav', __dirname + '/_current.wav',
         'rate', '16000', 'channels', '1',
         'silence', '1', '0.1', (options.threshold || '0.1'), '1', '1.0', (options.threshold || '0.1')
     ];
@@ -35,55 +30,35 @@ module.exports = Speakable;
 
 Speakable.prototype.postVoiceData = function () {
     // write data to request body
-    console.log('Posting voice data...');
-    var streamBuffer = new streamBuffers.ReadableStreamBuffer();
-    for (var i in this.recBuffer) {
-        if (this.recBuffer.hasOwnProperty(i)) {
-            streamBuffer.put(this.recBuffer[i], 'binary');
-        }
-    }
+    console.log('[speakable] posting voice data...');
 
-    wit.captureSpeechIntent(this.apiKey, streamBuffer, "audio/wav", function (err, res) {
+    var stream = fs.createReadStream(__dirname + '/_current.wav');
+    wit.captureSpeechIntent(this.apiKey, stream, "audio/wav", function (err, res) {
         if (err) {
             this.emit('error', err);
         }
         this.apiResult = res;
         this.parseResult();
-    }.bind(this));
 
-    this.recBuffer = [];
+        this.resetVoice();
+    }.bind(this));
 };
 
 Speakable.prototype.recordVoice = function () {
-    var self = this;
+    var self = this,
+        rec = spawn(self.cmd, self.cmdArgs, 'pipe');
 
-    var rec = spawn(self.cmd, self.cmdArgs, 'pipe');
+    self.emit('speechReady');
 
-    // Process stdout
-
-    rec.stdout.on('readable', function () {
-        self.emit('speechReady');
-    });
-
-    rec.stdout.setEncoding('binary');
-    rec.stdout.on('data', function (data) {
-        if (!self.recRunning) {
-            self.emit('speechStart');
-            self.recRunning = true;
-        }
-        self.recBuffer.push(data);
-    });
-
-    // Process stdin
-
+    // Process stderr
     rec.stderr.setEncoding('utf8');
     rec.stderr.on('data', function (data) {
-        console.log(data)
+        console.error(data)
     });
 
     rec.on('close', function (code) {
         self.recRunning = false;
-        self.emit('speechStop');
+        self.emit('speechEnd');
         if (code) {
             self.emit('error', 'sox exited with code ' + code);
         } else {
@@ -93,18 +68,17 @@ Speakable.prototype.recordVoice = function () {
 };
 
 Speakable.prototype.resetVoice = function () {
-    var self = this;
-    self.recBuffer = [];
+    // delete _current.wav file
+    fs.unlink(__dirname + '/_current.wav', function (err) {
+        if (err) throw err;
+    });
 }
 
 Speakable.prototype.parseResult = function () {
-    console.log(this.apiResult);
-    return;
-    var recognizedWords = [], apiResult = this.apiResult.result;
-    if (apiResult && apiResult.length > 0 && apiResult[0].alternative && apiResult[0].alternative[0]) {
-        recognizedWords = apiResult[0].alternative[0].transcript.split(' ');
-        this.emit('speechResult', recognizedWords);
+    var apiResult = this.apiResult;
+    if (apiResult._text.length > 0 && apiResult.outcomes.length > 0) {
+        this.emit('speechResult', apiResult._text, apiResult.outcomes.join(','));
     } else {
-        this.emit('speechResult', []);
+        this.emit('speechResult', false);
     }
 }

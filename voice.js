@@ -8,26 +8,27 @@ if (arguments[0] === 'w') {
     apiKey = process.env.WITKEY;
 }
 
-var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-20d' });
+var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-10d' });
 
-speakable.on('speechStart', function() {
-    console.log('speachStart');
+speakable.on('speechReady', function() {
+    console.log("[speakable] listening...");
 });
-speakable.on('speechStop', function() {
-    console.log('speachStop');
+speakable.on('speechEnd', function() {
+    console.log('[speakable] ended');
 });
 
 speakable.on('error', function(err) {
-    console.log('onError:');
-    console.log(err);
+    console.log('[speakable] error', err);
     speakable.recordVoice();
 });
 
-speakable.on('speechResult', function(recognizedWords) {
-    console.log('onSpeechResult:')
-    console.log(recognizedWords);
+speakable.on('speechResult', function(text, words) {
+    if (text) {
+        console.log('[speakable] result', text, words);
+    } else {
+        console.log('[speakable] no result');
+    }
     speakable.recordVoice();
 });
 
-console.log("Listening...");
 speakable.recordVoice();

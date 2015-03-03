@@ -4,20 +4,19 @@ var EventEmitter = require('events').EventEmitter,
     fs = require('fs'),
     wit = require('node-wit');
 
-var Speakable = function Speakable(credentials, options) {
+var Speakable = function Speakable(credentials) {
     EventEmitter.call(this);
-
-    options = options || {}
 
     this.recRunning = false;
     this.apiResult = {};
     this.apiKey = credentials.key
     this.cmd = 'sox';
+    this.fileName = __dirname + '/_current.wav';
     this.cmdArgs = [
         '-b', '16',
-        '-d', '-t', 'wav', __dirname + '/_current.wav',
+        '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
-        'silence', '1', '3.0', '0.1%', '1', '0.5', '1%'
+        'silence', '-l', '1', '00:00:00.5', '-10d', '1', '00:00:02', '10%'
     ];
 
     console.log("[command] sox " + this.cmdArgs.join(" "));
@@ -67,8 +66,9 @@ Speakable.prototype.recordVoice = function () {
 
 Speakable.prototype.resetVoice = function () {
     // delete _current.wav file
-    fs.unlink(__dirname + '/_current.wav', function (err) {
+    fs.unlink(this.fileName, function (err) {
         if (err) throw err;
+        this.fileName = __dirname + '/_current' + Math.floor(Math.random() * 10000) + '.wav';
     });
 }
 

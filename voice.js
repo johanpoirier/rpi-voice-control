@@ -8,7 +8,7 @@ if (arguments[0] === 'w') {
     apiKey = process.env.WITKEY;
 }
 
-var speakable = new Speakable({ key: apiKey }, { lang: 'fr', threshold: '-10d' });
+var speakable = new Speakable({ key: apiKey });
 
 speakable.on('speechReady', function() {
     console.log("[speakable] listening...");

@@ -11,15 +11,13 @@ var Speakable = function Speakable(credentials, options) {
 
     this.recRunning = false;
     this.apiResult = {};
-    this.apiLang = options.lang || "en-US";
     this.apiKey = credentials.key
     this.cmd = 'sox';
     this.cmdArgs = [
-        '-q',
         '-b', '16',
         '-d', '-t', 'wav', __dirname + '/_current.wav',
         'rate', '16000', 'channels', '1',
-        'silence', '1', '0.1', (options.threshold || '0.1'), '1', '1.0', (options.threshold || '0.1')
+        'silence', '1', '3.0', '0.1%', '1', '0.5', '1%'
     ];
 
     console.log("[command] sox " + this.cmdArgs.join(" "));

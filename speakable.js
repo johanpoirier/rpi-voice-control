@@ -21,8 +21,6 @@ var Speakable = function Speakable(credentials, options) {
         'rate', '16000', 'channels', '1',
         'silence', '1', '0.1', (options.threshold || '0.1'), '1', '1.0', (options.threshold || '0.1')
     ];
-
-    console.log("[command] sox " + this.cmdArgs.join(" "));
 };
 
 util.inherits(Speakable, EventEmitter);
@@ -116,6 +114,7 @@ Speakable.prototype.resetVoice = function () {
 
 Speakable.prototype.parseResult = function () {
     var recognizedWords = [], apiResult = this.apiResult.result;
+    console.log(apiResult);
     if (apiResult && apiResult.length > 0 && apiResult[0].alternative && apiResult[0].alternative[0]) {
         recognizedWords = apiResult[0].alternative[0].transcript.split(' ');
         this.emit('speechResult', recognizedWords);

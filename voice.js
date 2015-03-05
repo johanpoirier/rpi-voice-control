@@ -14,19 +14,19 @@ speakable.on('speechReady', function() {
     console.log("[speakable] listening...");
 });
 speakable.on('speechEnd', function() {
-    console.log('[speakable] ended');
+    //console.log('[speakable] ended');
 });
 
 speakable.on('error', function(err) {
-    console.log('[speakable] error', err);
+    //console.log('[speakable] error', err);
     speakable.recordVoice();
 });
 
 speakable.on('speechResult', function(text, words) {
     if (text) {
-        console.log('[speakable] result', text, words);
+        console.log('[speakable]', text, words);
     } else {
-        console.log('[speakable] no result');
+        //console.log('[speakable] no result');
     }
 });
 

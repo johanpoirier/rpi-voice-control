@@ -17,7 +17,7 @@ var Speakable = function Speakable(credentials) {
         '-b', '16',
         '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
-        'silence', '-l', '1', '00:00:01', '-30d', '1', '00:00:01', '5%'
+        'silence', '-l', '1', '00:00:00.2', '-30d', '1', '00:00:00.5', '5%'
     ];
 };
 
@@ -26,10 +26,10 @@ module.exports = Speakable;
 
 Speakable.prototype.postVoiceData = function (fileName) {
     // write data to request body
-    console.log('[speakable] posting voice data...');
+    //console.log('[speakable] posting voice data...');
 
     var stats = fs.statSync(fileName);
-    if (stats["size"] > 50000) {
+    if (stats["size"] > 72000) {
         var stream = fs.createReadStream(fileName);
         wit.captureSpeechIntent(this.apiKey, stream, "audio/wav", function (err, res) {
             if (err) {
@@ -37,10 +37,10 @@ Speakable.prototype.postVoiceData = function (fileName) {
             }
             this.apiResult = res;
             this.parseResult();
-            //this.resetVoice(fileName);
         }.bind(this));
     } else {
-        console.log("Record too short");
+        //console.log("Record too short");
+	this.resetVoice(fileName);
     }
 };
 
@@ -51,7 +51,7 @@ Speakable.prototype.recordVoice = function () {
     var self = this,
         rec = spawn(self.cmd, self.cmdArgs, 'pipe');
 
-    console.log("[command] sox " + this.cmdArgs.join(" "));
+    //console.log("[command] sox " + this.cmdArgs.join(" "));
 
     self.emit('speechReady');
 

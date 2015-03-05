@@ -13,37 +13,40 @@ var Speakable = function Speakable(credentials) {
     this.cmd = 'sox';
     this.fileName = __dirname + '/_current.wav';
     this.cmdArgs = [
+	'-q',
         '-b', '16',
         '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
-        'silence', '-l', '1', '00:00:00.5', '-10d', '1', '00:00:02', '10%'
+        'silence', '-l', '1', '00:00:00.5', '-20d', '1', '00:00:01', '5%'
     ];
-
-    console.log("[command] sox " + this.cmdArgs.join(" "));
 };
 
 util.inherits(Speakable, EventEmitter);
 module.exports = Speakable;
 
-Speakable.prototype.postVoiceData = function () {
+Speakable.prototype.postVoiceData = function (fileName) {
     // write data to request body
     console.log('[speakable] posting voice data...');
 
-    var stream = fs.createReadStream(__dirname + '/_current.wav');
+    var stream = fs.createReadStream(fileName);
     wit.captureSpeechIntent(this.apiKey, stream, "audio/wav", function (err, res) {
         if (err) {
             this.emit('error', err);
         }
         this.apiResult = res;
         this.parseResult();
-
-        this.resetVoice();
+	//this.resetVoice(fileName);
     }.bind(this));
 };
 
 Speakable.prototype.recordVoice = function () {
+    this.fileName = __dirname + "/_current" + Math.floor(Math.random() * 10000) + ".wav";
+    this.cmdArgs[6] = this.fileName;
+
     var self = this,
         rec = spawn(self.cmd, self.cmdArgs, 'pipe');
+
+    console.log("[command] sox " + this.cmdArgs.join(" "));
 
     self.emit('speechReady');
 
@@ -59,16 +62,15 @@ Speakable.prototype.recordVoice = function () {
         if (code) {
             self.emit('error', 'sox exited with code ' + code);
         } else {
-            self.postVoiceData();
+            self.postVoiceData(self.fileName);
         }
     });
 };
 
-Speakable.prototype.resetVoice = function () {
+Speakable.prototype.resetVoice = function (fileName) {
     // delete _current.wav file
-    fs.unlink(this.fileName, function (err) {
+    fs.unlink(fileName, function (err) {
         if (err) throw err;
-        this.fileName = __dirname + '/_current' + Math.floor(Math.random() * 10000) + '.wav';
     });
 }
 

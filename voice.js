@@ -28,7 +28,6 @@ speakable.on('speechResult', function(text, words) {
     } else {
         console.log('[speakable] no result');
     }
-    speakable.recordVoice();
 });
 
 speakable.recordVoice();

@@ -17,7 +17,7 @@ var Speakable = function Speakable(credentials) {
         '-b', '16',
         '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
-        'silence', '-l', '1', '00:00:00.5', '-20d', '1', '00:00:01', '5%'
+        'silence', '-l', '1', '00:00:01', '-30d', '1', '00:00:01', '5%'
     ];
 };
 
@@ -28,15 +28,20 @@ Speakable.prototype.postVoiceData = function (fileName) {
     // write data to request body
     console.log('[speakable] posting voice data...');
 
-    var stream = fs.createReadStream(fileName);
-    wit.captureSpeechIntent(this.apiKey, stream, "audio/wav", function (err, res) {
-        if (err) {
-            this.emit('error', err);
-        }
-        this.apiResult = res;
-        this.parseResult();
-	//this.resetVoice(fileName);
-    }.bind(this));
+    var stats = fs.statSync(fileName);
+    if (stats["size"] > 50000) {
+        var stream = fs.createReadStream(fileName);
+        wit.captureSpeechIntent(this.apiKey, stream, "audio/wav", function (err, res) {
+            if (err) {
+                this.emit('error', err);
+            }
+            this.apiResult = res;
+            this.parseResult();
+            //this.resetVoice(fileName);
+        }.bind(this));
+    } else {
+        console.log("Record too short");
+    }
 };
 
 Speakable.prototype.recordVoice = function () {
@@ -63,6 +68,7 @@ Speakable.prototype.recordVoice = function () {
             self.emit('error', 'sox exited with code ' + code);
         } else {
             self.postVoiceData(self.fileName);
+            self.recordVoice();
         }
     });
 };

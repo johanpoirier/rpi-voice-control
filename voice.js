@@ -9,16 +9,10 @@ if (arguments[0] === 'w') {
 }
 
 var speakable = new Speakable({ key: apiKey });
-
-/*speakable.on('speechReady', function() {
-    console.log("[speakable] listening...");
-});
-speakable.on('speechEnd', function() {
-    console.log('[speakable] ended');
-});*/
+console.log('[speakable] listening...');
 
 speakable.on('error', function(err) {
-    //console.log('[speakable] error', err);
+    console.err('[speakable] error', err);
     speakable.recordVoice();
 });
 

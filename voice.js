@@ -22,9 +22,12 @@ speakable.on('error', function(err) {
     speakable.recordVoice();
 });
 
-speakable.on('speechResult', function(text, words) {
+speakable.on('speechResult', function(text, outcomes) {
     if (text) {
-        console.log('[speakable]', text, words);
+        console.log('[speakable]', text);
+        outcomes.forEach(function (outcome) {
+            console.log('[speakable] ' + outcome.intent, JSON.stringify(outcome.entities));
+        });
     } else {
         //console.log('[speakable] no result');
     }

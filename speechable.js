@@ -25,9 +25,6 @@ util.inherits(Speakable, EventEmitter);
 module.exports = Speakable;
 
 Speakable.prototype.postVoiceData = function (fileName) {
-    // write data to request body
-    //console.log('[speakable] posting voice data...');
-
     var stats = fs.statSync(fileName);
     if (stats["size"] > 72000) {
         var stream = fs.createReadStream(fileName);
@@ -39,8 +36,7 @@ Speakable.prototype.postVoiceData = function (fileName) {
             this.parseResult();
         }.bind(this));
     } else {
-        //console.log("Record too short");
-	this.resetVoice(fileName);
+	    this.resetVoice(fileName);
     }
 };
 
@@ -49,9 +45,7 @@ Speakable.prototype.recordVoice = function () {
     this.cmdArgs[6] = this.fileName;
 
     var self = this,
-        rec = spawn(self.cmd, self.cmdArgs, 'pipe');
-
-    //console.log("[command] sox " + this.cmdArgs.join(" "));
+        rec = spawn(self.cmd, self.cmdArgs, { 'stdio' : 'pipe' });
 
     self.emit('speechReady');
 
@@ -83,7 +77,9 @@ Speakable.prototype.resetVoice = function (fileName) {
 Speakable.prototype.parseResult = function () {
     var apiResult = this.apiResult;
     if (apiResult._text.length > 0 && apiResult.outcomes.length > 0) {
-        this.emit('speechResult', apiResult._text, apiResult.outcomes.join(','));
+        this.emit('speechResult', apiResult._text, apiResult.outcomes.filter(function (outcome) {
+            return outcome.confidence > 0.4;
+        }));
     } else {
         this.emit('speechResult', false);
     }

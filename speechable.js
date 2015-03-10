@@ -17,7 +17,7 @@ var Speakable = function Speakable(credentials) {
         '-b', '16',
         '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
-        'silence', '-l', '1', '00:00:00.2', '-30d', '1', '00:00:00.5', '5%'
+        'silence', '-l', '1', '00:00:00.1', '-35d', '1', '00:00:00.5', '5%'
     ];
 };
 

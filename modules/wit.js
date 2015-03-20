@@ -2,18 +2,18 @@ var EventEmitter = require('events').EventEmitter,
     util = require('util'),
     spawn = require('child_process').spawn,
     fs = require('fs'),
-    wit = require('node-wit');
+    wit = require('node-wit'),
+    logger = require(__dirname + '/modules/logger.js');
 
 var Speakable = function Speakable(credentials) {
     EventEmitter.call(this);
 
-    this.recRunning = false;
     this.apiResult = {};
     this.apiKey = credentials.key
     this.cmd = 'sox';
     this.fileName = __dirname + '/_current.wav';
     this.cmdArgs = [
-	'-q',
+        '-q',
         '-b', '16',
         '-d', '-t', 'wav', this.fileName,
         'rate', '16000', 'channels', '1',
@@ -36,7 +36,7 @@ Speakable.prototype.postVoiceData = function (fileName) {
             this.parseResult();
         }.bind(this));
     } else {
-	    this.resetVoice(fileName);
+        this.resetVoice(fileName);
     }
 };
 
@@ -45,19 +45,19 @@ Speakable.prototype.recordVoice = function () {
     this.cmdArgs[6] = this.fileName;
 
     var self = this,
-        rec = spawn(self.cmd, self.cmdArgs, { 'stdio' : 'pipe' });
+        rec = spawn(self.cmd, self.cmdArgs, { 'stdio': 'pipe' });
 
-    self.emit('speechReady');
+    self.emit('ready');
 
     // Process stderr
     rec.stderr.setEncoding('utf8');
     rec.stderr.on('data', function (data) {
-        console.error(data)
+        logger.error(data)
     });
 
     rec.on('close', function (code) {
         self.recRunning = false;
-        self.emit('speechEnd');
+        self.emit('end');
         if (code) {
             self.emit('error', 'sox exited with code ' + code);
         } else {
@@ -75,12 +75,14 @@ Speakable.prototype.resetVoice = function (fileName) {
 }
 
 Speakable.prototype.parseResult = function () {
-    var apiResult = this.apiResult;
-    if (apiResult._text.length > 0 && apiResult.outcomes.length > 0) {
-        this.emit('speechResult', apiResult._text, apiResult.outcomes.filter(function (outcome) {
+    var apiResult = this.apiResult,
+        validOutcomes = apiResult.outcomes.filter(function (outcome) {
             return outcome.confidence > 0.4;
+        });
+
+    if (validOutcomes.length > 0) {
+        this.emit('result', apiResult._text, validOutcomes.reduce(function (outcome1, outcome2) {
+            return outcome1.confidence > outcome2.confidence ? outcome1 : outcome2;
         }));
-    } else {
-        this.emit('speechResult', false);
     }
 }

@@ -2,9 +2,11 @@ var exec = require('child_process').execSync,
     fs = require('fs'),
     crypto = require('crypto');
 
-var dir = '/home/pi/hdd/Photos/2013';
+var year = '2014';
+var dir = '/home/pi/hdd/Photos/' + year;
 var doneDir = __dirname + '/done';
 
+var replaceRegexp = /([&'() ])/g;
 var filesToUploadTest = new RegExp("\\.(jpg|jpeg|png|bmp|mkv|mp4|avi|mov|cr2)$", 'i');
 
 var dirFiles;
@@ -16,13 +18,13 @@ var getShasum = function (filename) {
 };
 
 var upload = function (filename) {
-    var relFilename = '2013' + filename.substring(dir.length - 1).replace(/ /g, '\\ ');
+    var relFilename = year + filename.substring(dir.length).replace(replaceRegexp, '\\$1');
 
     var cmdArgs = ['mtglacier', 'upload-file',
         '--config /home/pi/.glacier.cfg',
         '--vault Photos',
         '--journal /home/pi/glacier/journal.log',
-        '--filename ' + filename.replace(/ /g, '\\ '),
+        '--filename ' + filename.replace(replaceRegexp, '\\$1'),
         '--set-rel-filename ' + relFilename,
         '--partsize 8'];
 
@@ -45,13 +47,15 @@ var upload = function (filename) {
 };
 
 var mockUpload = function (filename) {
-    var relFilename = '2013/' + filename.substring(dir.length + 1);
+    var relFilename = year + filename.substring(dir.length).replace(replaceRegexp, '\\$1');
+
     var cmdArgs = ['mtglacier', 'upload-file',
         '--config /home/pi/.glacier.cfg',
         '--vault Photos',
         '--journal /home/pi/glacier/journal.log',
-        '--filename ' + filename.replace(/ /g, '\\ '),
-        '--set-rel-filename ' + relFilename.replace(/ /g, '\\ ')];
+        '--filename ' + filename.replace(replaceRegexp, '\\$1'),
+        '--set-rel-filename ' + relFilename,
+        '--partsize 8'];
 
     if (fs.existsSync(doneDir + '/' + getShasum(relFilename))) {
         console.log(relFilename + " already uploaded");

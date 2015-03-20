@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter,
     spawn = require('child_process').spawn,
     fs = require('fs'),
     wit = require('node-wit'),
-    logger = require(__dirname + '/modules/logger.js');
+    logger = require(__dirname + '/logger.js');
 
 var Speakable = function Speakable(credentials) {
     EventEmitter.call(this);
